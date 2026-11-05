@@ -1,39 +1,40 @@
 <?php
 // hapus_kelas.php
-session_start();
 
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
-$id = $_GET['id'];
+// Cek apakah ID tersedia
+if (!isset($_GET['id'])) {
+    header('Location: kelola_kelas.php');
+    exit;
+}
 
-// Ambil nama kelas sebelum dihapus
+// Ambil ID kelas
+$id = (int) $_GET['id'];
+
+// Cek apakah data kelas ada
 $cek = mysqli_query(
     $koneksi,
-    "SELECT nama FROM t_kelas WHERE id = '$id'"
+    "SELECT id FROM t_kelas WHERE id = $id"
 );
 
-$data = mysqli_fetch_assoc($cek);
+if (!$cek || mysqli_num_rows($cek) == 0) {
+    header('Location: kelola_kelas.php');
+    exit;
+}
 
 // Hapus data kelas
-$sql = "DELETE FROM t_kelas WHERE id = '$id'";
+$sql = "DELETE FROM t_kelas WHERE id = $id";
 
 if (mysqli_query($koneksi, $sql)) {
 
-    $id_user = $_SESSION['id_user'];
-    $waktu = date('Y-m-d H:i:s');
+    // Berhasil dihapus
+    header('Location: kelola_kelas.php');
+    exit;
 
-    $aktivitas = "hapus kelas: " . $data['nama'];
+} else {
 
-    // Simpan aktivitas ke tabel log
-    $log = "INSERT INTO tbl_log
-            (id_user, aktivitas, waktu)
-            VALUES
-            ('$id_user', '$aktivitas', '$waktu')";
-
-    mysqli_query($koneksi, $log);
+    echo "Data kelas gagal dihapus: " . mysqli_error($koneksi);
 }
-
-header('Location: kelola_kelas.php');
-exit;
 ?>
