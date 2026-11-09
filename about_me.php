@@ -1,8 +1,9 @@
 <?php
-session_start();
-include "config/koneksi.php";
+// about_me.php
+include 'includes/cek_session.php';
+include 'config/koneksi.php';
 
-
+// DATA DIRI
 $nama = "Rakha Muhammad Haykal";
 $kelas = "XII RPL";
 $sekolah = "SMK Muhammadiyah Tasikmalaya";
@@ -12,100 +13,246 @@ $hobi = "Mancing";
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <meta charset="UTF-8">
-    <title>Tentang Saya</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Tentang Saya - Pelanggaran Siswa</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f4f7fb;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        /* HEADER */
+        .about-header {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            border-radius: 18px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
+        }
+
+        .about-header h2 {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .about-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        /* CARD DATA DIRI */
+        .profile-card {
+            background: white;
+            border: 2px solid #d9e2f2;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+            margin-bottom: 20px;
+        }
+
+        .profile-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: #e7efff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .profile-name {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .profile-role {
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+
+        /* DATA */
+        .data-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px 18px;
+            margin-bottom: 12px;
+        }
+
+        .data-label {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .data-value {
+            color: #111827;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* DESKRIPSI */
+        .description-card {
+            background: white;
+            border: 2px solid #d9e2f2;
+            border-radius: 18px;
+            padding: 25px 30px;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.07);
+        }
+
+        .description-card h4 {
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .description-card p {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 0;
+        }
+
+        /* TOMBOL */
+        .btn-dashboard {
+            display: inline-block;
+            margin-top: 20px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .btn-dashboard:hover {
+            background: #1d4ed8;
+            color: white;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="container-fluid">
+
+<div class="container-fluid">
     <div class="row">
+
         <!-- SIDEBAR -->
-        <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
-            <h4 class="text-white mb-4">
-                Pelanggaran Siswa
-            </h4>
-            <ul class="nav nav-pills flex-column">
-                <li class="nav-item mb-2">
-                    <a href="dashboard.php" class="nav-link text-white">
-                        Dashboard
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_siswa.php" class="nav-link text-white">
-                        Data Siswa
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_guru.php" class="nav-link text-white">
-                        Data Guru
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_kelas.php" class="nav-link text-white">
-                        Data Kelas
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_tahun_ajaran.php" class="nav-link text-white">
-                        Data Tahun Ajaran
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_walikelas.php" class="nav-link text-white">
-                        Data Wali Kelas
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="penempatan_siswa.php" class="nav-link text-white">
-                        Penempatan Siswa
-                    </a>
-                </li>
-                 <li class="nav-item mb-2">
-                    <a href="kelola_pelanggaran_kategori.php" class="nav-link text-white">
-                        Kategori Pelanggaran
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="about_me.php" class="nav-link active">
-                     About Me
-                    </a>
-                </li>
-                <hr class="text-secondary">
-                <li class="nav-item">
-                    <a href="#" class="nav-link text-danger">
-                        Logout
-                    </a>
-                </li>
-            </ul>
-        </div>
+        <?php include 'layout/sidebar.php'; ?>
+
         <!-- KONTEN -->
-        <main class="col-md-9 col-lg-10 p-4">
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-    <div class="container-fluid">
-    <div class="row">
-        <!-- KONTEN -->
-        <main class="col-md-9 col-lg-10 p-4">
+        <main class="col-md-9 col-lg-10 main-content">
 
-    <h2>Tentang Saya</h2>
+            <!-- HEADER -->
+            <div class="about-header">
+                <h2>👨‍💻 Tentang Saya</h2>
+                <p>Informasi pribadi dan profil pembuat aplikasi.</p>
+            </div>
 
-    <p>Nama: <?php echo $nama; ?></p>
-    <p>Kelas: <?php echo $kelas; ?></p>
-    <p>Sekolah: <?php echo $sekolah; ?></p>
-    <p>Jurusan: <?php echo $jurusan; ?></p>
-    <p>Hobi: <?php echo $hobi; ?></p>
+            <!-- DATA DIRI -->
+            <div class="profile-card">
 
-    <h3>Deskripsi Diri</h3>
-    <p>
-        Saya adalah seorang pelajar yang sedang belajar
-        Rekayasa Perangkat Lunak. Saya senang mempelajari
-        teknologi dan membuat website. Saya ingin terus
-        belajar agar bisa menjadi Web Developer.
-    </p>
+                <div class="profile-icon">
+                    👨‍💻
+                </div>
 
-    <a href="dashboard.php">Kembali ke Dashboard</a>
+                <div class="profile-name">
+                    <?php echo htmlspecialchars($nama); ?>
+                </div>
+
+                <div class="profile-role">
+                    Siswa Rekayasa Perangkat Lunak
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="data-box">
+                            <div class="data-label">Nama</div>
+                            <div class="data-value">
+                                <?php echo htmlspecialchars($nama); ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="data-box">
+                            <div class="data-label">Kelas</div>
+                            <div class="data-value">
+                                <?php echo htmlspecialchars($kelas); ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="data-box">
+                            <div class="data-label">Sekolah</div>
+                            <div class="data-value">
+                                <?php echo htmlspecialchars($sekolah); ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="data-box">
+                            <div class="data-label">Jurusan</div>
+                            <div class="data-value">
+                                <?php echo htmlspecialchars($jurusan); ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="data-box">
+                            <div class="data-label">Hobi</div>
+                            <div class="data-value">
+                                🎣 <?php echo htmlspecialchars($hobi); ?>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- DESKRIPSI -->
+            <div class="description-card">
+
+                <h4>📖 Deskripsi Diri</h4>
+
+                <p>
+                    Saya adalah seorang pelajar yang sedang belajar
+                    Rekayasa Perangkat Lunak. Saya senang mempelajari
+                    teknologi dan membuat website. Saya ingin terus
+                    belajar agar bisa menjadi Web Developer.
+                </p>
+
+                <a href="dashboard.php" class="btn-dashboard">
+                    ← Kembali ke Dashboard
+                </a>
+
+            </div>
+
+        </main>
+
+    </div>
+</div>
 
 </body>
 </html>
