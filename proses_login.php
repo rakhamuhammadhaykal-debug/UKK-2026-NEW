@@ -8,7 +8,7 @@ include 'config/koneksi.php';
 $email = mysqli_real_escape_string($koneksi, $_POST['email']);
 $password = $_POST['password'];
 
-$sql = "SELECT * FROM t_users WHERE email = '$email'";
+$sql = "SELECT * FROM users WHERE email = '$email'";
 $hasil = mysqli_query($koneksi, $sql);
 
 if (!$hasil) {
@@ -21,8 +21,8 @@ if (mysqli_num_rows($hasil) == 1) {
 
     $data = mysqli_fetch_assoc($hasil);
 
-    // Cek password
-    if (password_verify($password, $data['password'])) {
+    // Cek password menggunakan MD5 (karena database kamu pakai MD5)
+    if (md5($password) === $data['password']) {
 
         // Session login
         $_SESSION['login'] = true;
