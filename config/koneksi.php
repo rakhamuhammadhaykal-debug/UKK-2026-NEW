@@ -1,14 +1,12 @@
 <?php
-//config/koneksi.php
-
-$host ='localhost';
+$host = 'localhost';
 $user = 'root';
 $password = '';
-$database = 'ukk_2026';
+$database = 'db_ukk_2026';
 
-$koneksi = mysqli_connect($host,$user,$password,$database);
+$koneksi = mysqli_connect($host, $user, $password, $database);
 
 if (!$koneksi) {
-    die('Koneksi database gagal: ' .mysqli_connect_error());
+    die('Koneksi database gagal: ' . mysqli_connect_error());
 }
 ?>
