@@ -161,7 +161,7 @@ $hobi = "Mancing";
 
             <!-- HEADER -->
             <div class="about-header">
-                <h2>👨‍💻 Tentang Saya</h2>
+                <h2>👨 Tentang Saya</h2>
                 <p>Informasi pribadi dan profil pembuat aplikasi.</p>
             </div>
 

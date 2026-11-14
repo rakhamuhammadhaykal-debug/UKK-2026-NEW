@@ -11,15 +11,35 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] !== 'guru') {
 $batas_poin = 150;
 $pesan_error = "";
 
+$user_id = (int)($_SESSION['id'] ?? 0);
+$stmt_guru = mysqli_prepare(
+    $koneksi,
+    'SELECT id, nama FROM t_guru WHERE user_id = ? AND status_aktif = 1 LIMIT 1'
+);
+if (!$stmt_guru) {
+    die("Gagal menyiapkan data guru: " . mysqli_error($koneksi));
+}
+mysqli_stmt_bind_param($stmt_guru, 'i', $user_id);
+if (!mysqli_stmt_execute($stmt_guru)) {
+    die("Gagal mengambil data guru: " . mysqli_stmt_error($stmt_guru));
+}
+$hasil_guru = mysqli_stmt_get_result($stmt_guru);
+$data_guru = $hasil_guru ? mysqli_fetch_assoc($hasil_guru) : null;
+if (!$data_guru) {
+    die("Profil guru aktif tidak ditemukan. Jalankan kembali buat_user_guru.php.");
+}
+$guru_id = (int)$data_guru['id'];
+$nama_guru = $data_guru['nama'];
+
 // SIMPAN PELANGGARAN
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
     $siswa_id = (int)($_POST['siswa_id'] ?? 0);
     $kategori_id = (int)($_POST['pelanggaran_kategori_id'] ?? 0);
-    $jenis_id = (int)($_POST['jenis_id'] ?? 0);
+    $pelanggaran_id = (int)($_POST['pelanggaran_id'] ?? 0);
     $tanggal = $_POST['tanggal'] ?? '';
     $keterangan = trim($_POST['keterangan'] ?? '');
 
-    if ($siswa_id <= 0 || $kategori_id <= 0 || $jenis_id <= 0) {
+    if ($siswa_id <= 0 || $kategori_id <= 0 || $pelanggaran_id <= 0) {
         $pesan_error = "Mohon lengkapi semua pilihan.";
     } elseif (
         !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) ||
@@ -31,58 +51,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
     ) {
         $pesan_error = "Tanggal tidak valid.";
     } else {
-        $tanggal_db = mysqli_real_escape_string($koneksi, $tanggal);
-        $keterangan_db = mysqli_real_escape_string($koneksi, $keterangan);
-
-        $cek_jenis = mysqli_query($koneksi, "
-            SELECT id, poin
-            FROM t_pelanggaran_jenis
-            WHERE id = $jenis_id
-            AND kategori_id = $kategori_id
-            AND status_aktif = 1
-            LIMIT 1
-        ");
-
-        if (!$cek_jenis) {
-            $pesan_error = "Gagal memeriksa jenis pelanggaran: " . mysqli_error($koneksi);
-        } elseif (mysqli_num_rows($cek_jenis) == 0) {
-            $pesan_error = "Jenis pelanggaran tidak ditemukan atau tidak sesuai kategori.";
+        $cek_pelanggaran = mysqli_prepare(
+            $koneksi,
+            'SELECT id, nama, poin, pelanggaran_kategori_id
+             FROM t_pelanggaran
+             WHERE id = ? AND pelanggaran_kategori_id = ? AND status_aktif = 1
+             LIMIT 1'
+        );
+        if (!$cek_pelanggaran) {
+            $pesan_error = "Gagal memeriksa pelanggaran: " . mysqli_error($koneksi);
         } else {
-            $cek_siswa = mysqli_query($koneksi, "
-                SELECT siswa_id
-                FROM t_kelas_siswa
-                WHERE siswa_id = $siswa_id
-                AND status_aktif = 1
-                LIMIT 1
-            ");
+            mysqli_stmt_bind_param($cek_pelanggaran, 'ii', $pelanggaran_id, $kategori_id);
+            if (!mysqli_stmt_execute($cek_pelanggaran)) {
+                $pesan_error = "Gagal memeriksa pelanggaran: " . mysqli_stmt_error($cek_pelanggaran);
+            }
+            $hasil_pelanggaran = mysqli_stmt_get_result($cek_pelanggaran);
+            $pelanggaran = $hasil_pelanggaran ? mysqli_fetch_assoc($hasil_pelanggaran) : null;
+        }
 
-            if (!$cek_siswa || mysqli_num_rows($cek_siswa) == 0) {
-                $pesan_error = "Siswa tidak ditemukan atau tidak aktif.";
+        if ($pesan_error === '' && empty($pelanggaran)) {
+            $pesan_error = "Jenis pelanggaran tidak ditemukan atau tidak sesuai kategori.";
+        }
+
+        if ($pesan_error === '' && !empty($pelanggaran)) {
+            $cek_siswa = mysqli_prepare(
+                $koneksi,
+                'SELECT s.nama, ks.kelas_id, k.nama AS nama_kelas, ks.tahun_ajaran_id
+                 FROM t_kelas_siswa ks
+                 INNER JOIN t_siswa s ON ks.siswa_id = s.id
+                 INNER JOIN t_kelas k ON ks.kelas_id = k.id
+                 WHERE ks.siswa_id = ? AND ks.status_aktif = 1 AND s.status_aktif = 1
+                 ORDER BY ks.tanggal_mulai DESC
+                 LIMIT 1'
+            );
+            if (!$cek_siswa) {
+                $pesan_error = "Gagal memeriksa siswa: " . mysqli_error($koneksi);
             } else {
-                $query_simpan = mysqli_query($koneksi, "
-                    INSERT INTO t_pelanggaran_siswa
-                    (
-                        siswa_id,
-                        pelanggaran_kategori_id,
-                        jenis_id,
-                        tanggal,
-                        keterangan
-                    )
-                    VALUES
-                    (
-                        $siswa_id,
-                        $kategori_id,
-                        $jenis_id,
-                        '$tanggal_db',
-                        '$keterangan_db'
-                    )
-                ");
+                mysqli_stmt_bind_param($cek_siswa, 'i', $siswa_id);
+                if (!mysqli_stmt_execute($cek_siswa)) {
+                    $pesan_error = "Gagal memeriksa siswa: " . mysqli_stmt_error($cek_siswa);
+                }
+                $hasil_siswa = mysqli_stmt_get_result($cek_siswa);
+                $siswa = $hasil_siswa ? mysqli_fetch_assoc($hasil_siswa) : null;
+            }
 
-                if ($query_simpan) {
-                    header("Location: catat_pelanggaran.php?berhasil=1");
-                    exit;
+            if ($pesan_error === '' && !$siswa) {
+                $pesan_error = "Siswa tidak ditemukan atau tidak aktif.";
+            }
+
+            if ($pesan_error === '' && $siswa) {
+                $sql_simpan = '
+                    INSERT INTO t_pelanggaran_siswa (
+                        tahun_ajaran_id, siswa_id, nama_siswa, kelas_id, nama_kelas,
+                        pelanggaran_id, nama_pelanggaran, pelanggaran_kategori_id,
+                        guru_id, nama_guru, tanggal, keterangan, poin, tindakan, status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ';
+                $query_simpan = mysqli_prepare($koneksi, $sql_simpan);
+                if (!$query_simpan) {
+                    $pesan_error = "Gagal menyiapkan penyimpanan: " . mysqli_error($koneksi);
                 } else {
-                    $pesan_error = "Gagal menyimpan: " . mysqli_error($koneksi);
+                    $nama_siswa = $siswa['nama'];
+                    $kelas_id = (int)$siswa['kelas_id'];
+                    $nama_kelas = $siswa['nama_kelas'];
+                    $tahun_ajaran_id = (int)$siswa['tahun_ajaran_id'];
+                    $nama_pelanggaran = $pelanggaran['nama'];
+                    $poin = (int)$pelanggaran['poin'];
+                    $tindakan = '';
+                    $status = 'tercatat';
+                    mysqli_stmt_bind_param(
+                        $query_simpan,
+                        'iisisisiisssiss',
+                        $tahun_ajaran_id,
+                        $siswa_id,
+                        $nama_siswa,
+                        $kelas_id,
+                        $nama_kelas,
+                        $pelanggaran_id,
+                        $nama_pelanggaran,
+                        $kategori_id,
+                        $guru_id,
+                        $nama_guru,
+                        $tanggal,
+                        $keterangan,
+                        $poin,
+                        $tindakan,
+                        $status
+                    );
+
+                    if (mysqli_stmt_execute($query_simpan)) {
+                        header("Location: catat_pelanggaran.php?berhasil=1");
+                        exit;
+                    }
+
+                    $pesan_error = "Gagal menyimpan: " . mysqli_stmt_error($query_simpan);
                 }
             }
         }
@@ -129,16 +191,16 @@ if (!$query_kategori) {
     die("Gagal mengambil kategori: " . mysqli_error($koneksi));
 }
 
-// DATA JENIS PELANGGARAN
+// DATA PELANGGARAN
 $query_jenis = mysqli_query($koneksi, "
-    SELECT id, kategori_id, nama, poin
-    FROM t_pelanggaran_jenis
+    SELECT id, pelanggaran_kategori_id AS kategori_id, nama, poin
+    FROM t_pelanggaran
     WHERE status_aktif = 1
     ORDER BY nama ASC
 ");
 
 if (!$query_jenis) {
-    die("Gagal mengambil jenis pelanggaran: " . mysqli_error($koneksi));
+    die("Gagal mengambil data pelanggaran: " . mysqli_error($koneksi));
 }
 
 $jenis_data = [];
@@ -153,9 +215,8 @@ $query_evaluasi = mysqli_query($koneksi, "
     FROM (
         SELECT ps.siswa_id
         FROM t_pelanggaran_siswa ps
-        INNER JOIN t_pelanggaran_jenis pj ON ps.jenis_id = pj.id
         GROUP BY ps.siswa_id
-        HAVING SUM(pj.poin) >= $batas_poin
+        HAVING SUM(ps.poin) >= $batas_poin
     ) AS evaluasi
 ");
 
@@ -173,30 +234,19 @@ $query_riwayat = mysqli_query($koneksi, "
         ps.siswa_id,
         ps.tanggal,
         ps.keterangan,
-        s.nama AS nama_siswa,
-        k.nama AS nama_kelas,
+        ps.nama_siswa,
+        ps.nama_kelas,
         pk.nama AS nama_kategori,
-        pj.nama AS nama_jenis,
-        pj.poin AS poin,
+        ps.nama_pelanggaran AS nama_jenis,
+        ps.poin AS poin,
         (
-            SELECT COALESCE(SUM(pj2.poin), 0)
+            SELECT COALESCE(SUM(ps2.poin), 0)
             FROM t_pelanggaran_siswa ps2
-            INNER JOIN t_pelanggaran_jenis pj2 ON ps2.jenis_id = pj2.id
             WHERE ps2.siswa_id = ps.siswa_id
         ) AS total_poin
     FROM t_pelanggaran_siswa ps
-    INNER JOIN t_siswa s ON ps.siswa_id = s.id
     LEFT JOIN t_pelanggaran_kategori pk
         ON ps.pelanggaran_kategori_id = pk.id
-    LEFT JOIN t_pelanggaran_jenis pj
-        ON ps.jenis_id = pj.id
-    LEFT JOIN (
-        SELECT siswa_id, MAX(kelas_id) AS kelas_id
-        FROM t_kelas_siswa
-        WHERE status_aktif = 1
-        GROUP BY siswa_id
-    ) ks ON ks.siswa_id = ps.siswa_id
-    LEFT JOIN t_kelas k ON ks.kelas_id = k.id
     ORDER BY ps.id DESC
 ");
 
@@ -606,7 +656,7 @@ textarea.form-control {
 
                 <div class="form-group">
                     <label for="jenis_id">Jenis Pelanggaran</label>
-                    <select name="jenis_id" id="jenis_id" class="form-select" required disabled>
+                    <select name="pelanggaran_id" id="jenis_id" class="form-select" required disabled>
                         <option value="">-- Pilih Kategori Terlebih Dahulu --</option>
                     </select>
                 </div>

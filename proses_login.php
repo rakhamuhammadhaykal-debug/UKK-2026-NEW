@@ -5,25 +5,32 @@ session_start();
 
 include 'config/koneksi.php';
 
-$email = mysqli_real_escape_string($koneksi, $_POST['email']);
-$password = $_POST['password'];
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
 
-$sql = "SELECT * FROM users WHERE email = '$email'";
-$hasil = mysqli_query($koneksi, $sql);
+$stmt = mysqli_prepare($koneksi, 'SELECT id, name, email, password, role FROM t_users WHERE email = ? LIMIT 1');
 
-if (!$hasil) {
+if (!$stmt) {
     $_SESSION['pesan_error'] = 'Terjadi kesalahan pada database.';
     header('Location: login.php');
     exit;
 }
 
-if (mysqli_num_rows($hasil) == 1) {
+mysqli_stmt_bind_param($stmt, 's', $email);
+mysqli_stmt_execute($stmt);
+$hasil = mysqli_stmt_get_result($stmt);
 
-    $data = mysqli_fetch_assoc($hasil);
+if (!$hasil) {
+    mysqli_stmt_close($stmt);
+    $_SESSION['pesan_error'] = 'Terjadi kesalahan pada database.';
+    header('Location: login.php');
+    exit;
+}
 
-    // Cek password menggunakan MD5 (karena database kamu pakai MD5)
-    if (md5($password) === $data['password']) {
+if ($data = mysqli_fetch_assoc($hasil)) {
+    mysqli_stmt_close($stmt);
 
+    if (password_verify($password, $data['password'])) {
         // Session login
         $_SESSION['login'] = true;
         $_SESSION['id'] = $data['id'];
@@ -72,6 +79,7 @@ if (mysqli_num_rows($hasil) == 1) {
     }
 
 } else {
+    mysqli_stmt_close($stmt);
 
     $_SESSION['pesan_error'] = 'Email tidak ditemukan!';
     header('Location: login.php');
