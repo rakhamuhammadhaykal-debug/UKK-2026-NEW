@@ -8,80 +8,78 @@ include 'config/koneksi.php';
 $email = trim($_POST['email'] ?? '');
 $password = $_POST['password'] ?? '';
 
-$stmt = mysqli_prepare($koneksi, 'SELECT id, name, email, password, role FROM t_users WHERE email = ? LIMIT 1');
-
-if (!$stmt) {
-    $_SESSION['pesan_error'] = 'Terjadi kesalahan pada database.';
+if ($email === '' || $password === '') {
+    $_SESSION['pesan_error'] = 'Email dan password wajib diisi.';
     header('Location: login.php');
     exit;
 }
 
-mysqli_stmt_bind_param($stmt, 's', $email);
-mysqli_stmt_execute($stmt);
-$hasil = mysqli_stmt_get_result($stmt);
+$query = mysqli_prepare(
+    $koneksi,
+    "SELECT id, name, email, password, role
+     FROM t_users
+     WHERE email = ?
+     LIMIT 1"
+);
 
-if (!$hasil) {
-    mysqli_stmt_close($stmt);
-    $_SESSION['pesan_error'] = 'Terjadi kesalahan pada database.';
+if (!$query) {
+    $_SESSION['pesan_error'] = 'Terjadi kesalahan database: ' . mysqli_error($koneksi);
     header('Location: login.php');
     exit;
 }
 
-if ($data = mysqli_fetch_assoc($hasil)) {
-    mysqli_stmt_close($stmt);
+mysqli_stmt_bind_param($query, "s", $email);
+mysqli_stmt_execute($query);
 
-    if (password_verify($password, $data['password'])) {
-        // Session login
-        $_SESSION['login'] = true;
-        $_SESSION['id'] = $data['id'];
-        $_SESSION['name'] = $data['name'];
-        $_SESSION['role'] = $data['role'];
+$result = mysqli_stmt_get_result($query);
 
-        // =========================
-        // ADMIN
-        // =========================
-        if ($data['role'] === 'admin') {
+if (!$result) {
+    mysqli_stmt_close($query);
+    $_SESSION['pesan_error'] = 'Terjadi kesalahan saat mengambil data.';
+    header('Location: login.php');
+    exit;
+}
 
-            header('Location: dashboard.php');
-            exit;
-        }
+$data = mysqli_fetch_assoc($result);
 
-        // =========================
-        // GURU
-        // =========================
-        elseif ($data['role'] === 'guru') {
+mysqli_stmt_close($query);
 
-            header('Location: guru/dashboard_guru.php');
-            exit;
-        }
+if (!$data) {
+    $_SESSION['pesan_error'] = 'Email tidak ditemukan di tabel t_users.';
+    header('Location: login.php');
+    exit;
+}
 
-        // =========================
-        // ROLE TIDAK DIKENAL
-        // =========================
-        else {
+if (!password_verify($password, $data['password'])) {
+    $_SESSION['pesan_error'] = 'Password salah.';
+    header('Location: login.php');
+    exit;
+}
 
-            $_SESSION['pesan_error'] = 'Role akun tidak dikenali.';
+// Login berhasil
+$_SESSION['login'] = true;
+$_SESSION['id'] = $data['id'];
+$_SESSION['name'] = $data['name'];
+$_SESSION['role'] = $data['role'];
+$_SESSION['email'] = $data['email'];
 
-            unset($_SESSION['login']);
-            unset($_SESSION['id']);
-            unset($_SESSION['name']);
-            unset($_SESSION['role']);
+// Arahkan berdasarkan role
+if ($data['role'] === 'admin') {
 
-            header('Location: login.php');
-            exit;
-        }
+    header('Location: dashboard.php');
+    exit;
 
-    } else {
+} elseif ($data['role'] === 'guru') {
 
-        $_SESSION['pesan_error'] = 'Password salah!';
-        header('Location: login.php');
-        exit;
-    }
+    header('Location: guru/dashboard_guru.php');
+    exit;
 
 } else {
-    mysqli_stmt_close($stmt);
 
-    $_SESSION['pesan_error'] = 'Email tidak ditemukan!';
+    session_destroy();
+
+    session_start();
+    $_SESSION['pesan_error'] = 'Role akun tidak dikenali.';
     header('Location: login.php');
     exit;
 }
