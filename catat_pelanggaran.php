@@ -32,6 +32,7 @@ $kelas = mysqli_query(
 );
 
 // Daftar pelanggaran
+// Menggunakan tabel t_pelanggaran sesuai database
 $pelanggaran = mysqli_query(
     $koneksi,
     "SELECT id, nama, poin, pelanggaran_kategori_id
@@ -122,6 +123,7 @@ $hasil = mysqli_query($koneksi, $sql);
                                 <select name="siswa_id"
                                         class="form-select" required>
                                     <option value="">-- Pilih Siswa --</option>
+
                                     <?php while ($s = mysqli_fetch_assoc($siswa)) { ?>
                                         <option value="<?php echo $s['id']; ?>">
                                             <?php echo htmlspecialchars(
@@ -137,6 +139,7 @@ $hasil = mysqli_query($koneksi, $sql);
                                 <select name="tahun_ajaran_id"
                                         class="form-select" required>
                                     <option value="">-- Pilih Tahun Ajaran --</option>
+
                                     <?php while ($ta = mysqli_fetch_assoc($tahun)) { ?>
                                         <option value="<?php echo $ta['id']; ?>">
                                             <?php echo htmlspecialchars($ta['nama']); ?>
@@ -150,6 +153,7 @@ $hasil = mysqli_query($koneksi, $sql);
                                 <select name="kelas_id"
                                         class="form-select" required>
                                     <option value="">-- Pilih Kelas --</option>
+
                                     <?php while ($k = mysqli_fetch_assoc($kelas)) { ?>
                                         <option value="<?php echo $k['id']; ?>">
                                             <?php echo htmlspecialchars(
@@ -168,18 +172,22 @@ $hasil = mysqli_query($koneksi, $sql);
                                         id="pelanggaran"
                                         class="form-select" required>
                                     <option value="">-- Pilih Pelanggaran --</option>
+
                                     <?php while ($p = mysqli_fetch_assoc($pelanggaran)) { ?>
                                         <option
                                             value="<?php echo $p['id']; ?>"
                                             data-poin="<?php echo $p['poin']; ?>"
                                             data-kategori="<?php echo $p['pelanggaran_kategori_id']; ?>">
+
                                             <?php echo htmlspecialchars(
                                                 $p['nama'] . ' (' .
                                                 $p['poin'] . ' poin)'
                                             ); ?>
+
                                         </option>
                                     <?php } ?>
                                 </select>
+
                                 <input type="hidden"
                                        name="pelanggaran_kategori_id"
                                        id="kategori">
@@ -190,6 +198,7 @@ $hasil = mysqli_query($koneksi, $sql);
                                 <select name="guru_id"
                                         class="form-select" required>
                                     <option value="">-- Pilih Guru --</option>
+
                                     <?php while ($g = mysqli_fetch_assoc($guru)) { ?>
                                         <option value="<?php echo $g['id']; ?>">
                                             <?php echo htmlspecialchars($g['nama']); ?>
@@ -200,7 +209,8 @@ $hasil = mysqli_query($koneksi, $sql);
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Tanggal</label>
-                                <input type="date" name="tanggal"
+                                <input type="date"
+                                       name="tanggal"
                                        class="form-control"
                                        value="<?php echo date('Y-m-d'); ?>"
                                        required>
@@ -208,9 +218,12 @@ $hasil = mysqli_query($koneksi, $sql);
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Poin Pelanggaran</label>
-                                <input type="number" name="poin"
-                                       id="poin" class="form-control"
-                                       min="0" required>
+                                <input type="number"
+                                       name="poin"
+                                       id="poin"
+                                       class="form-control"
+                                       min="0"
+                                       required>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -220,9 +233,11 @@ $hasil = mysqli_query($koneksi, $sql);
                                     <option value="Ditindaklanjuti">
                                         Ditindaklanjuti
                                     </option>
+
                                     <option value="Proses">
                                         Proses
                                     </option>
+
                                     <option value="Selesai">
                                         Selesai
                                     </option>
@@ -251,6 +266,7 @@ $hasil = mysqli_query($koneksi, $sql);
 
                         <a href="dashboard.php"
                            class="btn btn-secondary">Kembali</a>
+
                     </form>
                 </div>
             </div>
@@ -263,6 +279,7 @@ $hasil = mysqli_query($koneksi, $sql);
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped">
+
                             <thead class="table-dark">
                                 <tr>
                                     <th>No</th>
@@ -279,22 +296,51 @@ $hasil = mysqli_query($koneksi, $sql);
                             </thead>
 
                             <tbody>
-                            <?php $no = 1; ?>
-                            <?php while ($row = mysqli_fetch_assoc($hasil)) { ?>
-                                <tr>
-                                    <td><?php echo $no++; ?></td>
-                                    <td><?php echo htmlspecialchars($row['nama_siswa']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['nama_kelas']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['tahun_ajaran']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['nama_pelanggaran']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['nama_guru']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['tanggal']); ?></td>
-                                    <td><?php echo (int) $row['poin']; ?></td>
-                                    <td><?php echo htmlspecialchars($row['tindakan']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['status']); ?></td>
-                                </tr>
-                            <?php } ?>
+                                <?php $no = 1; ?>
+
+                                <?php while ($row = mysqli_fetch_assoc($hasil)) { ?>
+                                    <tr>
+                                        <td><?php echo $no++; ?></td>
+
+                                        <td>
+                                            <?php echo htmlspecialchars($row['nama_siswa']); ?>
+                                        </td>
+
+                                        <td>
+                                            <?php echo htmlspecialchars($row['nama_kelas']); ?>
+                                        </td>
+
+                                        <td>
+                                            <?php echo htmlspecialchars($row['tahun_ajaran'] ?? ''); ?>
+                                        </td>
+
+                                        <td>
+                                            <?php echo htmlspecialchars($row['nama_pelanggaran']); ?>
+                                        </td>
+
+                                        <td>
+                                            <?php echo htmlspecialchars($row['nama_guru']); ?>
+                                        </td>
+
+                                        <td>
+                                            <?php echo htmlspecialchars($row['tanggal']); ?>
+                                        </td>
+
+                                        <td>
+                                            <?php echo (int) $row['poin']; ?>
+                                        </td>
+
+                                        <td>
+                                            <?php echo htmlspecialchars($row['tindakan']); ?>
+                                        </td>
+
+                                        <td>
+                                            <?php echo htmlspecialchars($row['status']); ?>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
                             </tbody>
+
                         </table>
                     </div>
                 </div>
